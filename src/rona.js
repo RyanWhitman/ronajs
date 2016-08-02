@@ -6,7 +6,7 @@ var Rona = function() {
 		},
 		routes = {},
 		route_requested = '',
-		processing_enabled = true;
+		execution_enabled = true;
 
 	this.previous_uri = '';
 
@@ -26,14 +26,14 @@ var Rona = function() {
 			}
 		});
 
-		this.process_route();
+		this.execute_route();
 	};
 
-	this.process_route = function() {
+	this.execute_route = function(exe_route) {
 
 		route_requested = location.pathname.replace(config.system_path, '');
 
-		if (!processing_enabled)
+		if ((typeof exe_route === 'boolean' && !exe_route) || (typeof exe_route !== 'boolean' && !execution_enabled))
 			return;
 
 		if (route_requested == '/')
@@ -213,25 +213,25 @@ var Rona = function() {
 		return routes;
 	};
 
-	this.change_route = function(uri) {
+	this.change_route = function(uri, exe_route) {
 
 		this.previous_uri = route_requested;
 
 		window.history.pushState('', '', uri);
-		this.process_route();
+		this.execute_route(exe_route);
 	};
 
 	this.refresh = function() {
 		this.change_route(route_requested);
 	}
 
-	this.stop_process = function() {
+	this.stop_executing = function() {
 
-		processing_enabled = false;
+		execution_enabled = false;
 	}
 
-	this.start_process = function() {
+	this.start_executing = function() {
 
-		processing_enabled = true;
+		execution_enabled = true;
 	}
 };
