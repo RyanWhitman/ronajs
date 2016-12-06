@@ -6,7 +6,7 @@
  * @license https://opensource.org/licenses/MIT MIT
  * @version .5.0.0
  * @see https://github.com/RyanWhitman/ronajs
- * @since .5.0.0
+ * @since .5.1.0
  */
 
 var Rona = function() {
@@ -175,7 +175,6 @@ var Rona = function() {
 					window[handler](instance.route_vars);
 			}
 		}
-
 	}
 
 	/**
@@ -333,5 +332,27 @@ var Rona = function() {
 	 */
 	this.enable_handlers = function() {
 		handlers_disabled = false;
+	}
+
+	/**
+	 * Parses the query string and returns the query parameters as an object. If a param_name is passed in, that specific value will be returned.
+	 * 
+	 * @param    {string|int}   param_name    If passed in, the value for that specific query parameter will be returned.
+	 * @return {object|string}                The query parameters as an object. If a param_name is passed in, that specific value will be returned.
+	 */
+	this.query_params = function(param_name) {
+
+		var
+			match,
+			pl = /\+/g,  // Regex for replacing addition symbol with a space
+			search = /([^&=]+)=?([^&]*)/g,
+			decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+			query  = window.location.search.substring(1),
+			query_params = {};
+
+		while (match = search.exec(query))
+			query_params[decode(match[1])] = decode(match[2]);
+
+		return typeof param_name != 'undefined' ? query_params[param_name] : query_params;
 	}
 };
