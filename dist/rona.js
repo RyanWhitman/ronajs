@@ -4,9 +4,9 @@
  * @package RonaJS
  * @copyright Copyright (c) 2016 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT MIT
- * @version .5.0.0
+ * @version .5.1.0
  * @see https://github.com/RyanWhitman/ronajs
- * @since .5.1.0
+ * @since .5.0.0
  */
 
 var Rona = function() {
