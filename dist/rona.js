@@ -2,25 +2,40 @@
  * RonaJS is a JavaScript micro framework / router.
  *
  * @package RonaJS
- * @copyright Copyright (c) 2016 Ryan Whitman (https://ryanwhitman.com)
+ * @copyright Copyright (c) 2017 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT MIT
- * @version .5.1.0
+ * @version .6.0.0
  * @see https://github.com/RyanWhitman/ronajs
- * @since .5.0.0
  */
-
 var Rona = function() {
 
 	/**
-	 * Establish several private properties.
+	 * A property that houses Rona configuration.
+	 * 
+	 * @type {Object}
 	 */
-	var
-		config = {
-			system_path: '',
-		},
-		routes = {},
-		route_requested = '',
-		handlers_disabled = false;
+	var config = {system_path: ''};
+
+	/**
+	 * A property that holds the routes.
+	 * 
+	 * @type {Object}
+	 */
+	var routes = {};
+
+	/**
+	 * A property that holds the route that has been requested.
+	 * 
+	 * @type {String}
+	 */
+	var route_requested = '';
+
+	/**
+	 * A property that is used to turn on/off the handlers.
+	 * 
+	 * @type {Boolean}
+	 */
+	var handlers_disabled = false;
 
 	/**
 	 * Establish the initial previous URI.
@@ -37,7 +52,7 @@ var Rona = function() {
 	this.route_vars = {};
 
 	/**
-	 * A method that alters the default configuration.
+	 * A method that alters the default configuration. This is a forthcoming method.
 	 * 
 	 * @return {void}
 	 */
@@ -48,28 +63,65 @@ var Rona = function() {
 	};
 
 	/**
+	 * Add a route.
+	 * 
+	 * @param  {string}                   path       The path / URI.
+	 * @param  {string|array|function}    handlers   The handlers.
+	 * @return {void}
+	 */
+	this.route = function(path, handlers) {
+
+		// Grab the instance.
+		var instance = this;
+	
+		// Format the path.
+		path = path.toString().toLowerCase();
+		if (path == '/')
+			path = '';
+
+		// Validate & format the handlers.
+		if (typeof handlers === 'undefined')
+			return false;
+		else if (Object.prototype.toString.call(handlers) !== '[object Array]')
+			handlers = [handlers];
+
+		// Add this route to the global routes variable. Currently, the script does not attempt to merge handlers. That will need to be implemented.
+		routes[path] = handlers;
+	};
+
+	/**
 	 * Run RonaJS.
 	 * 
 	 * @return {void}
 	 */
-	this.run = function() {
+	this.run = function(execute_route) {
 
 		// Grab the instance.
 		var instance = this;
 
+		// Set default for execute_route variable.
+		var execute_route = typeof execute_route == 'boolean' ? execute_route : true;
+
+		// Add a listener to the click event.
 		document.addEventListener('click', function(e) {
 
+			// When an anchor element that contains the "data-rona" attribute is clicked, use Rona to execute the route.
 			if (typeof e.target.dataset.rona === 'string' && typeof e.target.href === 'string') {
 				e.preventDefault();
 				instance.change_route(e.target.href);
 			}
 		});
 
+		// Add a listener to the popstate event.
 		window.addEventListener('popstate', function() {
+
+			// On popstate, use Rona to execute the route.
 			instance.execute_route();
 		});
 
-		instance.execute_route();
+		// If the execute_route variable is set to true, run the execute_route method.
+		if (execute_route)
+			instance.execute_route();
 	};
 
 	/**
@@ -84,82 +136,52 @@ var Rona = function() {
 		var instance = this;
 
 		// Set a default for "disable_handlers."
-		disable_handlers = typeof disable_handlers == 'boolean' ? disable_handlers : null;
+		var disable_handlers = typeof disable_handlers == 'boolean' ? disable_handlers : null;
 
+		// Determine & format the request route.
 		route_requested = location.pathname.replace(config.system_path, '');
-
 		if (route_requested == '/')
 			route_requested = '';
 
-		// Turn the requested route into an array & get the count
-		var
-			route_requested_arr = route_requested.split('/');
-			route_requested_count = route_requested_arr.length;
-			
-		// Establish an empty $route_found variable
-		var route_found = '';
-			
-		// First attempt to find a direct match. If that fails, try matching a route with a variable in it.
-		var direct_match = typeof routes.regular === 'undefined' || typeof routes.regular[route_requested] === 'undefined' ? null : routes.regular[route_requested];
-		if (direct_match !== null)
-			route_found = direct_match;
-		else {
+		// Loop thru each route.
+		for (var path in routes) {
 
-			var variable_matches = routes.variable;
+			if (!routes.hasOwnProperty(path))
+				continue;
 
-			for (var path in variable_matches) {
+			// Grab the handlers.
+			var handlers = routes[path];
 
-				if (!variable_matches.hasOwnProperty(path))
-					continue;
+			// Set a variable to house the path variables.
+			var path_vars_matched = [];
 
-				var handlers = variable_matches[path];
+			// Create a regular expression to match the path.
+			var regex = new RegExp('^' + path.replace(/{([\da-z_]*[\da-z]+[\da-z_]*)(\([\S ]+?\))?}/gi, function(match, p1, p2) {
+				path_vars_matched.push(p1);
+				return typeof p2 == 'string' ? p2 : '([\\w-]+)';
+			}) + '$');
+
+			// Validate the requested path against the regular expression. 
+			var route_requested_matched = route_requested.match(regex);
+			if (route_requested_matched != null) {
 
 				// Reset route_var object
 				instance.route_vars = {};
 
-				// Explode the route being examined into an array
-				var route_examining_arr = path.split('/');
+				route_found = handlers;
 
-				// Ensure the arrays are the same size
-				if (route_requested_count == route_examining_arr.length) {
-
-					// Iterate thru each of the array elements. The requested route and the route being examined either need to match exactly or the route being examined needs to have a variable.
-					var
-						matches_needed = route_requested_count,
-						matches_found = 0;
-
-					for (var i = 0; i < matches_needed; i++) {
-
-						if (route_requested_arr[i] == route_examining_arr[i]) {
-						
-							// An exact match was found, so we'll continue to the next array item.
-							matches_found++;
-								
-						} else if (route_examining_arr[i].match(/^{.+}$/)) {
-						
-							// The route being examined has a route variable, so it's a match. Set route_var array for use later on.
-							instance.route_vars[route_examining_arr[i].replace('{', '').replace('}', '')] = route_requested_arr[i];
-							matches_found++;
-								
-						} else {
-						
-							// A match was not found, so the route being examined isn't a match.
-							break;
-						}
-					}
-
-					if (matches_found == matches_needed) {
-						route_found = handlers;
-						break;
-					}
+				if (typeof route_requested_matched.length == 'number') {
+					for (var i = 1; i < route_requested_matched.length; i++)
+						instance.route_vars[path_vars_matched[i - 1]] = route_requested_matched[i];
 				}
 			}
 		}
 
+		// Proceed with executing the handlers only if the handlers are enabled.
 		if (disable_handlers === false || (disable_handlers === null && handlers_disabled))
 			return;
 
-		// If a route was found, run it
+		// If a route was found, run it.
 		if (typeof route_found === 'object') {
 
 			if (typeof instance.route_vars !== 'object')
@@ -176,102 +198,6 @@ var Rona = function() {
 			}
 		}
 	}
-
-	/**
-	 * Add a route.
-	 * 
-	 * @param  {string}                   path       The path or URI.
-	 * @param  {string|array|function}    handlers   The handlers.
-	 * @return {void}
-	 */
-	this.route = function(path, handlers) {
-
-		// Grab the instance.
-		var instance = this;
-	
-		// Format path
-		path = path.toString().toLowerCase();
-		if (path == '/')
-			path = '';
-
-		// Format handlers
-		if (typeof handlers === 'undefined')
-			return false;
-		else if (Object.prototype.toString.call(handlers) !== '[object Array]')
-			handlers = [handlers];
-			
-		// Determine route type
-		var type;
-		if (path.match(/[*]/i))
-			type = 'wildcard';
-		else if (path.match(/\/{.+(}$|}\/)/))
-			type = 'variable';
-		else
-			type = 'regular';
-
-		// Turn the path into an array & get the count
-		var
-			path_arr = path.split('/'),
-			path_count = path_arr.length;
-			
-		// Merge these handlers with those previously created for this route
-		var combined_handlers;
-		if (typeof routes[type] === 'object' && typeof routes[type][path] === 'object')
-			combined_handlers = routes[type][path].concat(handlers);
-		else
-			combined_handlers = handlers;
-
-		// Destroy the former handlers variable
-		handlers = null;
-	
-		// Find and attach wildcard handlers
-		if (type != 'wildcard' && typeof routes.wildcard !== 'undefined') {
-
-			// Grab the wildcard routes
-			var wc_routes = routes.wildcard;
-
-			var wc_handlers_all = [];
-
-			for (var wc_path in wc_routes) {
-
-				if (!wc_routes.hasOwnProperty(wc_path))
-					continue;
-
-				var wc_handlers = wc_routes[wc_path];
-				
-				var path_examining_arr = wc_path.split('/');
-				
-				var is_match = false;
-				for (i = 0; i < path_count; i++) {
-					
-					if (path_examining_arr[i] == path_arr[i] || path_examining_arr[i] == '*') {
-					
-						// Get the count, which is the current iteration (array index) plus 1
-						var count = i + 1;
-						
-						if (count == path_examining_arr.length && (count == path_count || path_examining_arr[i] == '*')) {
-							
-							is_match = true;
-							break;
-						}
-					
-					} else
-						break;
-				}
-				
-				if (is_match)
-					Array.prototype.push.apply(wc_handlers_all, wc_handlers);
-			}
-		
-			// Add the wildcard array
-			var combined_handlers = wc_handlers_all.concat(combined_handlers);
-		}
-
-		// Set the route
-		if (typeof routes[type] === 'undefined')
-			routes[type] = {};
-		routes[type][path] = combined_handlers;
-	};
 
 	/**
 	 * Return all of the routes.
