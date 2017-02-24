@@ -1,83 +1,112 @@
 /**
- * RonaJS is a JavaScript micro framework / router.
+ * RonaJS is a JavaScript router / micro framework that allows for the creation of any number of routes. Each route consists of a URI and 1 or more handlers. URIs can be straight-forward and literal or they can consist of variables and regular expressions. Upon execution, RonaJS finds the matching route and executes the handlers. RonaJS is built in vanilla JavaScript and does not require jQuery.
  *
- * @package RonaJS
  * @copyright Copyright (c) 2017 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT MIT
- * @version .6.0.0
+ * @version .7.0.0
  * @see https://github.com/RyanWhitman/ronajs
+ */
+
+/**
+ * The RonaJS class.
+ *
+ * @class
  */
 var Rona = function() {
 
 	/**
-	 * A property that houses Rona configuration.
-	 * 
+	 * The RonaJS configuration.
+	 *
+	 * @private
 	 * @type {Object}
 	 */
-	var config = {system_path: ''};
+	var config = {
+		base_uri: ''
+	};
 
 	/**
-	 * A property that holds the routes.
-	 * 
+	 * The routes.
+	 *
+	 * @private
 	 * @type {Object}
 	 */
 	var routes = {};
 
 	/**
-	 * A property that holds the route that has been requested.
-	 * 
-	 * @type {String}
+	 * The current requested URI.
+	 *
+	 * @private
+	 * @type {string}
 	 */
-	var route_requested = '';
+	var current_requested_uri = '';
 
 	/**
-	 * A property that is used to turn on/off the handlers.
-	 * 
-	 * @type {Boolean}
+	 * Determines whether or not the execution of handlers is disabled.
+	 *
+	 * @private
+	 * @type {boolean}
 	 */
 	var handlers_disabled = false;
 
 	/**
-	 * Establish the initial previous URI.
-	 * 
-	 * @type {String}
+	 * The previously requested URI.
+	 *
+	 * @public
+	 * @type {string}
 	 */
-	this.previous_uri = '';
+	this.previous_requested_uri = '';
 
 	/**
-	 * Establish the initial router variables.
-	 * 
+	 * The route variables for the matching URI.
+	 *
+	 * @public
 	 * @type {Object}
 	 */
 	this.route_vars = {};
 
 	/**
-	 * A method that alters the default configuration. This is a forthcoming method.
-	 * 
-	 * @return {void}
+	 * The constructor.
 	 */
-	this.config = function() {
+	(function() {
 
-		// Grab the instance.
+		// Store the RonaJS instance in a variable.
 		var instance = this;
-	};
+
+		// Add a listener to the click event.
+		document.addEventListener('click', function(e) {
+
+			// When an anchor element that contains the "data-rona" attribute is clicked, use RonaJS to execute the route.
+			if (typeof e.target.dataset.rona === 'string' && typeof e.target.href === 'string') {
+				e.preventDefault();
+				instance.location(e.target.href);
+			}
+		});
+
+		// Add a listener to the popstate event.
+		window.addEventListener('popstate', function() {
+
+			// On popstate, use RonaJS to execute the route.
+			instance.execute();
+		});
+	})();
 
 	/**
 	 * Add a route.
-	 * 
-	 * @param  {string}                   path       The path / URI.
-	 * @param  {string|array|function}    handlers   The handlers.
+	 *
+	 * @public
+	 * @param  {string}                   uri       The URI to attach a handler(s) to. The URI should include both starting and ending slashes, as necessary. The URI can be straight-forward and literal but can also contain variables and regular expressions. Variables are denoted with starting and closing brackets. For example, `/my-page/{var1}`. By default, RonaJS interprets variables with a regular expression that accepts letters (case-insensitive), digits, and dashes. A custom regular expression can be passed in, as such: `/my-page/{var1([\\d]+)}`. In this example, RonaJS will now only accept digits for `var1`. Custom regular expressions that are tied to a route variable must be both parenthetically enclosed and escaped. Regular expressions do not necessarily need to be tied to a variable. They can be scattered throughout and RonaJS will match them against the requested URI.
+	 * @param  {string|Array|function}    handlers   A function(s) that will be executed for the provided URI. This argument may contain an anonymous function, a named function, a string containing the name of a function, or an array containing any combination of 3. Each handler will receive an object containing the route variables or an empty object when no variables exist.
 	 * @return {void}
 	 */
-	this.route = function(path, handlers) {
+	this.route = function(uri, handlers) {
 
-		// Grab the instance.
+		// Store the RonaJS instance in a variable.
 		var instance = this;
 	
-		// Format the path.
-		path = path.toString().toLowerCase();
-		if (path == '/')
-			path = '';
+		// Format the URI.
+		uri = uri.toString().toLowerCase();
+		if (uri == '/')
+			uri = '';
 
 		// Validate & format the handlers.
 		if (typeof handlers === 'undefined')
@@ -85,94 +114,65 @@ var Rona = function() {
 		else if (Object.prototype.toString.call(handlers) !== '[object Array]')
 			handlers = [handlers];
 
-		// Add this route to the global routes variable. Currently, the script does not attempt to merge handlers. That will need to be implemented.
-		routes[path] = handlers;
+		// Add this route to the routes property. Currently, RonaJS does not attempt to merge handlers. That will need to be implemented.
+		routes[uri] = handlers;
 	};
 
 	/**
-	 * Run RonaJS.
-	 * 
+	 * Attempt to match the current URI with a route and then execute the handlers, if enabled.
+	 *
+	 * @public
+	 * @param  {boolean|null}   [disable_handlers=null]   Whether or not to disable the handlers. If null, RonaJS defers to the handlers_disabled property.
 	 * @return {void}
 	 */
-	this.run = function(execute_route) {
+	this.execute = function(disable_handlers) {
 
-		// Grab the instance.
-		var instance = this;
-
-		// Set default for execute_route variable.
-		var execute_route = typeof execute_route == 'boolean' ? execute_route : true;
-
-		// Add a listener to the click event.
-		document.addEventListener('click', function(e) {
-
-			// When an anchor element that contains the "data-rona" attribute is clicked, use Rona to execute the route.
-			if (typeof e.target.dataset.rona === 'string' && typeof e.target.href === 'string') {
-				e.preventDefault();
-				instance.change_route(e.target.href);
-			}
-		});
-
-		// Add a listener to the popstate event.
-		window.addEventListener('popstate', function() {
-
-			// On popstate, use Rona to execute the route.
-			instance.execute_route();
-		});
-
-		// If the execute_route variable is set to true, run the execute_route method.
-		if (execute_route)
-			instance.execute_route();
-	};
-
-	/**
-	 * Execute the route.
-	 * 
-	 * @param  {bool | null}   disable_handlers   Whether or not to disable the handlers. If null, the handlers_disabled property will be referenced.
-	 * @return {void}
-	 */
-	this.execute_route = function(disable_handlers) {
-
-		// Grab the instance.
-		var instance = this;
-
-		// Set a default for "disable_handlers."
+		// Set default(s).
 		var disable_handlers = typeof disable_handlers == 'boolean' ? disable_handlers : null;
 
-		// Determine & format the request route.
-		route_requested = location.pathname.replace(config.system_path, '');
-		if (route_requested == '/')
-			route_requested = '';
+		// Store the RonaJS instance in a variable.
+		var instance = this;
+
+		// Grab the requested URI and strip the base URI from it.
+		current_requested_uri = location.pathname.replace(config.base_uri, '');
+
+		// When the requested URI is just essentially the domain, strip the slash from it.
+		if (current_requested_uri == '/')
+			current_requested_uri = '';
 
 		// Loop thru each route.
-		for (var path in routes) {
+		for (var uri in routes) {
 
-			if (!routes.hasOwnProperty(path))
+			// Ensure the property exists.
+			if (!routes.hasOwnProperty(uri))
 				continue;
 
 			// Grab the handlers.
-			var handlers = routes[path];
+			var handlers = routes[uri];
 
-			// Set a variable to house the path variables.
-			var path_vars_matched = [];
+			// Set a variable to hold the route variables.
+			var route_vars_matched = [];
 
-			// Create a regular expression to match the path.
-			var regex = new RegExp('^' + path.replace(/{([\da-z_]*[\da-z]+[\da-z_]*)(\([\S ]+?\))?}/gi, function(match, p1, p2) {
-				path_vars_matched.push(p1);
+			// Create a regular expression to match the URI.
+			var regex = new RegExp('^' + uri.replace(/{([\da-z_]*[\da-z]+[\da-z_]*)(\([\S ]+?\))?}/gi, function(match, p1, p2) {
+				route_vars_matched.push(p1);
 				return typeof p2 == 'string' ? p2 : '([\\w-]+)';
 			}) + '$');
 
-			// Validate the requested path against the regular expression. 
-			var route_requested_matched = route_requested.match(regex);
-			if (route_requested_matched != null) {
+			// Validate the requested URI against the regular expression.
+			var current_requested_uri_matched = current_requested_uri.match(regex);
+			if (current_requested_uri_matched != null) {
 
 				// Reset route_var object
 				instance.route_vars = {};
 
-				route_found = handlers;
+				// Store the matching route's handlers in a variable.
+				var handlers_to_execute = handlers;
 
-				if (typeof route_requested_matched.length == 'number') {
-					for (var i = 1; i < route_requested_matched.length; i++)
-						instance.route_vars[path_vars_matched[i - 1]] = route_requested_matched[i];
+				// Collect the route variables.
+				if (typeof current_requested_uri_matched.length == 'number') {
+					for (var i = 1; i < current_requested_uri_matched.length; i++)
+						instance.route_vars[route_vars_matched[i - 1]] = current_requested_uri_matched[i];
 				}
 			}
 		}
@@ -181,16 +181,24 @@ var Rona = function() {
 		if (disable_handlers === false || (disable_handlers === null && handlers_disabled))
 			return;
 
-		// If a route was found, run it.
-		if (typeof route_found === 'object') {
+		// If handlers were found, execute them.
+		if (typeof handlers_to_execute === 'object') {
 
+			// Ensure the route_vars format is correct.
 			if (typeof instance.route_vars !== 'object')
 				instance.route_vars = {};
 
-			for (var idx in route_found) {
+			// Loop thru the handlers.
+			for (var idx in handlers_to_execute) {
 
-				var handler = route_found[idx];
+				// Ensure the property exists.
+				if (!handlers_to_execute.hasOwnProperty(idx))
+					continue;
 
+				// Grab the handler.
+				var handler = handlers_to_execute[idx];
+
+				// Execute the handler.
 				if (typeof handler === 'function')
 					handler(instance.route_vars);
 				else
@@ -200,51 +208,60 @@ var Rona = function() {
 	}
 
 	/**
-	 * Return all of the routes.
-	 * 
-	 * @return {object} The routes.
+	 * Get all routes.
+	 *
+	 * @public
+	 * @return {Object} The routes.
 	 */
 	this.get_routes = function() {
 		return routes;
 	};
 
 	/**
-	 * Chang the current route.
-	 * 
-	 * @param  {void}         uri                The new route to take the user to.
-	 * @param  {bool|null}    disable_handlers   Whether or not to disable the handlers. If null, the handlers_disabled property will be referenced.
+	 * Change the current route.
+	 *
+	 * @public
+	 * @param  {string}         uri                       The new URI to take the user to.
+	 * @param  {boolean|null}      [disable_handlers=null]   Whether or not to disable the handlers. If null, RonaJS defers to the handlers_disabled property.
 	 * @return {void}
 	 */
-	this.change_route = function(uri, disable_handlers) {
+	this.location = function(uri, disable_handlers) {
 
-		// Grab the instance.
-		var instance = this;
-
-		// Set a default for "disable_handlers."
+		// Set default(s).
 		disable_handlers = typeof disable_handlers == 'boolean' ? disable_handlers : null;
 
-		instance.previous_uri = route_requested;
+		// Store the RonaJS instance in a variable.
+		var instance = this;
 
+		// The previous URI is now the current requested URI.
+		instance.previous_requested_uri = current_requested_uri;
+
+		// Use push state to change the address in the browser's address bar.
 		window.history.pushState('', '', uri);
-		instance.execute_route(disable_handlers);
+
+		// Execute the new route.
+		instance.execute(disable_handlers);
 	};
 
 	/**
-	 * Refresh the current route.
-	 * 
+	 * Reload the current route.
+	 *
+	 * @public
 	 * @return {void}
 	 */
-	this.refresh = function() {
+	this.reload = function() {
 
-		// Grab the instance.
+		// Store the RonaJS instance in a variable.
 		var instance = this;
 
-		instance.change_route(route_requested);
+		// Change the "location" to the current URI.
+		instance.location(current_requested_uri);
 	}
 
 	/**
 	 * Disable the execution of handlers.
-	 * 
+	 *
+	 * @public
 	 * @return {void}
 	 */
 	this.disable_handlers = function() {
@@ -253,7 +270,8 @@ var Rona = function() {
 
 	/**
 	 * Enable the execution of handlers.
-	 * 
+	 *
+	 * @public
 	 * @return {void}
 	 */
 	this.enable_handlers = function() {
@@ -261,13 +279,18 @@ var Rona = function() {
 	}
 
 	/**
-	 * Parses the query string and returns the query parameters as an object. If a param_name is passed in, that specific value will be returned.
-	 * 
-	 * @param    {string|int}   param_name    If passed in, the value for that specific query parameter will be returned.
-	 * @return {object|string}                The query parameters as an object. If a param_name is passed in, that specific value will be returned.
+	 * Parse the query string and get the query parameters as an object.
+	 *
+	 * @public
+	 * @param    {string}           [param_name=null]    If passed in, the value for that specific query parameter will be returned.
+	 * @return   {Object|string}                         The query parameters as an object. If a param_name is passed in, that specific value will be returned.
 	 */
 	this.query_params = function(param_name) {
 
+		// Set default(s).
+		var param_name = typeof param_name != 'undefined' ? param_name : null;
+
+		// Set some variables.
 		var
 			match,
 			pl = /\+/g,  // Regex for replacing addition symbol with a space
@@ -276,9 +299,11 @@ var Rona = function() {
 			query  = window.location.search.substring(1),
 			query_params = {};
 
+		// Collect the query params.
 		while (match = search.exec(query))
 			query_params[decode(match[1])] = decode(match[2]);
 
-		return typeof param_name != 'undefined' ? query_params[param_name] : query_params;
+		// Return the query params / query param.
+		return param_name == null ? query_params : query_params[param_name];
 	}
 };

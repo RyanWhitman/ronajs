@@ -1,3 +1,7 @@
+---------- v. .7.0.0 ----------
+
+- Added documentation. Added commenting. Renamed and resorted properties and methods.
+
 ---------- v. .6.0.0 ----------
 
 - Rewrote the routing engine to allow for regular expressions.
