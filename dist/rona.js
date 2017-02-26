@@ -3,7 +3,7 @@
  *
  * @copyright Copyright (c) 2017 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT MIT
- * @version .7.0.1
+ * @version .7.1.0
  * @see https://github.com/RyanWhitman/ronajs
  */
 
@@ -17,7 +17,6 @@ var Rona = function() {
 	/**
 	 * This RonaJS instance.
 	 *
-	 * @private
 	 * @type {Object}
 	 */
 	var instance = this;
@@ -57,20 +56,20 @@ var Rona = function() {
 	var handlers_disabled = false;
 
 	/**
-	 * The previously requested URI.
+	 * The previous requested URI.
 	 *
-	 * @public
+	 * @private
 	 * @type {string}
 	 */
-	instance.previous_requested_uri = '';
+	var previous_requested_uri = '';
 
 	/**
 	 * The route variables for the matching URI.
 	 *
-	 * @public
+	 * @private
 	 * @type {Object}
 	 */
-	instance.route_vars = {};
+	var route_vars = {};
 
 	/**
 	 * The constructor.
@@ -163,7 +162,7 @@ var Rona = function() {
 			if (current_requested_uri_matched != null) {
 
 				// Reset route_var object
-				instance.route_vars = {};
+				route_vars = {};
 
 				// Store the matching route's handlers in a variable.
 				var handlers_to_execute = handlers;
@@ -171,7 +170,7 @@ var Rona = function() {
 				// Collect the route variables.
 				if (typeof current_requested_uri_matched.length == 'number') {
 					for (var i = 1; i < current_requested_uri_matched.length; i++)
-						instance.route_vars[route_vars_matched[i - 1]] = current_requested_uri_matched[i];
+						route_vars[route_vars_matched[i - 1]] = current_requested_uri_matched[i];
 				}
 			}
 		}
@@ -184,8 +183,8 @@ var Rona = function() {
 		if (typeof handlers_to_execute === 'object') {
 
 			// Ensure the route_vars format is correct.
-			if (typeof instance.route_vars !== 'object')
-				instance.route_vars = {};
+			if (typeof route_vars !== 'object')
+				route_vars = {};
 
 			// Loop thru the handlers.
 			for (var idx in handlers_to_execute) {
@@ -199,12 +198,12 @@ var Rona = function() {
 
 				// Execute the handler.
 				if (typeof handler === 'function')
-					handler(instance.route_vars);
+					handler(instance.route_vars());
 				else
-					window[handler](instance.route_vars);
+					window[handler](instance.route_vars());
 			}
 		}
-	}
+	};
 
 	/**
 	 * Get all routes.
@@ -230,7 +229,7 @@ var Rona = function() {
 		disable_handlers = typeof disable_handlers == 'boolean' ? disable_handlers : null;
 
 		// The previous URI is now the current requested URI.
-		instance.previous_requested_uri = current_requested_uri;
+		previous_requested_uri = current_requested_uri;
 
 		// Use push state to change the address in the browser's address bar.
 		window.history.pushState('', '', uri);
@@ -247,7 +246,7 @@ var Rona = function() {
 	 */
 	instance.reload = function() {
 		instance.location(current_requested_uri);
-	}
+	};
 
 	/**
 	 * Disable the execution of handlers.
@@ -257,7 +256,7 @@ var Rona = function() {
 	 */
 	instance.disable_handlers = function() {
 		handlers_disabled = true;
-	}
+	};
 
 	/**
 	 * Enable the execution of handlers.
@@ -267,7 +266,7 @@ var Rona = function() {
 	 */
 	instance.enable_handlers = function() {
 		handlers_disabled = false;
-	}
+	};
 
 	/**
 	 * Parse the query string and get the query parameters as an object.
@@ -296,5 +295,25 @@ var Rona = function() {
 
 		// Return the query params / query param.
 		return param_name == null ? query_params : query_params[param_name];
-	}
+	};
+	
+	/**
+	 * Get the previous requested URI.
+	 *
+	 * @public
+	 * @return   {string}   The previous requested URI.
+	 */
+	instance.previous_requested_uri = function() {
+		return previous_requested_uri;
+	};
+	
+	/**
+	 * Get the route variables for the matching URI.
+	 *
+	 * @public
+	 * @return   {Object}   The route variables for the matching URI.
+	 */
+	instance.route_vars = function() {
+		return route_vars;
+	};
 };
