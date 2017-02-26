@@ -1,3 +1,7 @@
+---------- v. .7.0.1 ----------
+
+- Fixed bug - The constructor was referencing "this" incorrectly.
+
 ---------- v. .7.0.0 ----------
 
 - Added documentation. Added commenting. Renamed and resorted properties and methods.
