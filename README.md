@@ -4,7 +4,7 @@ RonaJS is a JavaScript router / micro framework that allows for the creation of 
 
 ### Current Version
 
-.7.0.0
+.7.0.1
 
 ## Installation
 

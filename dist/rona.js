@@ -3,7 +3,7 @@
  *
  * @copyright Copyright (c) 2017 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT MIT
- * @version .7.0.0
+ * @version .7.0.1
  * @see https://github.com/RyanWhitman/ronajs
  */
 
@@ -13,6 +13,14 @@
  * @class
  */
 var Rona = function() {
+
+	/**
+	 * This RonaJS instance.
+	 *
+	 * @private
+	 * @type {Object}
+	 */
+	var instance = this;
 
 	/**
 	 * The RonaJS configuration.
@@ -54,7 +62,7 @@ var Rona = function() {
 	 * @public
 	 * @type {string}
 	 */
-	this.previous_requested_uri = '';
+	instance.previous_requested_uri = '';
 
 	/**
 	 * The route variables for the matching URI.
@@ -62,15 +70,12 @@ var Rona = function() {
 	 * @public
 	 * @type {Object}
 	 */
-	this.route_vars = {};
+	instance.route_vars = {};
 
 	/**
 	 * The constructor.
 	 */
 	(function() {
-
-		// Store the RonaJS instance in a variable.
-		var instance = this;
 
 		// Add a listener to the click event.
 		document.addEventListener('click', function(e) {
@@ -98,10 +103,7 @@ var Rona = function() {
 	 * @param  {string|Array|function}    handlers   A function(s) that will be executed for the provided URI. This argument may contain an anonymous function, a named function, a string containing the name of a function, or an array containing any combination of 3. Each handler will receive an object containing the route variables or an empty object when no variables exist.
 	 * @return {void}
 	 */
-	this.route = function(uri, handlers) {
-
-		// Store the RonaJS instance in a variable.
-		var instance = this;
+	instance.route = function(uri, handlers) {
 	
 		// Format the URI.
 		uri = uri.toString().toLowerCase();
@@ -125,13 +127,10 @@ var Rona = function() {
 	 * @param  {boolean|null}   [disable_handlers=null]   Whether or not to disable the handlers. If null, RonaJS defers to the handlers_disabled property.
 	 * @return {void}
 	 */
-	this.execute = function(disable_handlers) {
+	instance.execute = function(disable_handlers) {
 
 		// Set default(s).
 		var disable_handlers = typeof disable_handlers == 'boolean' ? disable_handlers : null;
-
-		// Store the RonaJS instance in a variable.
-		var instance = this;
 
 		// Grab the requested URI and strip the base URI from it.
 		current_requested_uri = location.pathname.replace(config.base_uri, '');
@@ -213,7 +212,7 @@ var Rona = function() {
 	 * @public
 	 * @return {Object} The routes.
 	 */
-	this.get_routes = function() {
+	instance.get_routes = function() {
 		return routes;
 	};
 
@@ -225,13 +224,10 @@ var Rona = function() {
 	 * @param  {boolean|null}      [disable_handlers=null]   Whether or not to disable the handlers. If null, RonaJS defers to the handlers_disabled property.
 	 * @return {void}
 	 */
-	this.location = function(uri, disable_handlers) {
+	instance.location = function(uri, disable_handlers) {
 
 		// Set default(s).
 		disable_handlers = typeof disable_handlers == 'boolean' ? disable_handlers : null;
-
-		// Store the RonaJS instance in a variable.
-		var instance = this;
 
 		// The previous URI is now the current requested URI.
 		instance.previous_requested_uri = current_requested_uri;
@@ -249,12 +245,7 @@ var Rona = function() {
 	 * @public
 	 * @return {void}
 	 */
-	this.reload = function() {
-
-		// Store the RonaJS instance in a variable.
-		var instance = this;
-
-		// Change the "location" to the current URI.
+	instance.reload = function() {
 		instance.location(current_requested_uri);
 	}
 
@@ -264,7 +255,7 @@ var Rona = function() {
 	 * @public
 	 * @return {void}
 	 */
-	this.disable_handlers = function() {
+	instance.disable_handlers = function() {
 		handlers_disabled = true;
 	}
 
@@ -274,7 +265,7 @@ var Rona = function() {
 	 * @public
 	 * @return {void}
 	 */
-	this.enable_handlers = function() {
+	instance.enable_handlers = function() {
 		handlers_disabled = false;
 	}
 
@@ -285,7 +276,7 @@ var Rona = function() {
 	 * @param    {string}           [param_name=null]    If passed in, the value for that specific query parameter will be returned.
 	 * @return   {Object|string}                         The query parameters as an object. If a param_name is passed in, that specific value will be returned.
 	 */
-	this.query_params = function(param_name) {
+	instance.query_params = function(param_name) {
 
 		// Set default(s).
 		var param_name = typeof param_name != 'undefined' ? param_name : null;
