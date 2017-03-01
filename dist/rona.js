@@ -3,7 +3,7 @@
  *
  * @copyright Copyright (c) 2017 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT MIT
- * @version .7.1.0
+ * @version .7.2.0
  * @see https://github.com/RyanWhitman/ronajs
  */
 
@@ -98,7 +98,7 @@ var Rona = function() {
 	 * Add a route.
 	 *
 	 * @public
-	 * @param  {string}                   uri       The URI to attach a handler(s) to. The URI should include both starting and ending slashes, as necessary. The URI can be straight-forward and literal but can also contain variables and regular expressions. Variables are denoted with starting and closing brackets. For example, `/my-page/{var1}`. By default, RonaJS interprets variables with a regular expression that accepts letters (case-insensitive), digits, and dashes. A custom regular expression can be passed in, as such: `/my-page/{var1([\\d]+)}`. In this example, RonaJS will now only accept digits for `var1`. Custom regular expressions that are tied to a route variable must be both parenthetically enclosed and escaped. Regular expressions do not necessarily need to be tied to a variable. They can be scattered throughout and RonaJS will match them against the requested URI.
+	 * @param  {string}                   uri       The URI to attach a handler(s) to. The URI should include both starting and ending slashes, as necessary. The URI can be straight-forward and literal but can also contain variables and regular expressions. Variables are denoted with starting and closing curly braces. For example, `/my-page/{var1}`. By default, RonaJS interprets variables with a regular expression that matches anything but a forward slash. A custom regular expression can be passed in, as such: `/my-page/{var1([\\d]+)}`. In this example, RonaJS will now only accept digits for `var1`. Custom regular expressions that are tied to a route variable must be both parenthetically enclosed and escaped. Regular expressions do not necessarily need to be tied to a variable. They can be scattered throughout and RonaJS will match them against the requested URI. All URIs have a case-insensitive match.
 	 * @param  {string|Array|function}    handlers   A function(s) that will be executed for the provided URI. This argument may contain an anonymous function, a named function, a string containing the name of a function, or an array containing any combination of 3. Each handler will receive an object containing the route variables or an empty object when no variables exist.
 	 * @return {void}
 	 */
@@ -132,7 +132,7 @@ var Rona = function() {
 		var disable_handlers = typeof disable_handlers == 'boolean' ? disable_handlers : null;
 
 		// Grab the requested URI and strip the base URI from it.
-		current_requested_uri = location.pathname.replace(config.base_uri, '');
+		current_requested_uri = decodeURIComponent(location.pathname).replace(config.base_uri, '');
 
 		// When the requested URI is just essentially the domain, strip the slash from it.
 		if (current_requested_uri == '/')
@@ -154,8 +154,8 @@ var Rona = function() {
 			// Create a regular expression to match the URI.
 			var regex = new RegExp('^' + uri.replace(/{([\da-z_]*[\da-z]+[\da-z_]*)(\([\S ]+?\))?}/gi, function(match, p1, p2) {
 				route_vars_matched.push(p1);
-				return typeof p2 == 'string' ? p2 : '([\\w-]+)';
-			}) + '$');
+				return typeof p2 == 'string' ? p2 : '([^/]+)';
+			}) + '$', 'i');
 
 			// Validate the requested URI against the regular expression.
 			var current_requested_uri_matched = current_requested_uri.match(regex);
