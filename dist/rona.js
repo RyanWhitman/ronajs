@@ -3,7 +3,7 @@
  *
  * @copyright Copyright (c) 2017 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT MIT
- * @version .7.2.0
+ * @version .7.3.0
  * @see https://github.com/RyanWhitman/ronajs
  */
 
@@ -186,21 +186,31 @@ var Rona = function() {
 			if (typeof route_vars !== 'object')
 				route_vars = {};
 
-			// Loop thru the handlers.
-			for (var idx in handlers_to_execute) {
+			// Trigger an event and proceed if true is returned.
+			if (trigger_event('rona_execute_handlers', true, {
+				route_vars: route_vars,
+				handlers: handlers_to_execute
+			})) {
 
-				// Ensure the property exists.
-				if (!handlers_to_execute.hasOwnProperty(idx))
-					continue;
+				// Loop thru the handlers.
+				for (var idx in handlers_to_execute) {
 
-				// Grab the handler.
-				var handler = handlers_to_execute[idx];
+					// Ensure the property exists.
+					if (!handlers_to_execute.hasOwnProperty(idx))
+						continue;
 
-				// Execute the handler.
-				if (typeof handler === 'function')
-					handler(instance.route_vars());
-				else
-					window[handler](instance.route_vars());
+					// Grab the handler.
+					var handler = handlers_to_execute[idx];
+
+					// Execute the handler.
+					if (typeof handler === 'function')
+						handler(instance.route_vars());
+					else
+						window[handler](instance.route_vars());
+				}
+
+				// Trigger an event.
+				trigger_event('rona_handlers_executed');
 			}
 		}
 	};
@@ -316,4 +326,40 @@ var Rona = function() {
 	instance.route_vars = function() {
 		return route_vars;
 	};
+
+	/**
+	 * Create and dispatch a custom event.
+	 * 
+	 * @param  {string}   type          The name of the event.
+	 * @param  {Boolean}  cancelable    Whether or not Event.preventDefault() can prevent the event from moving forward.
+	 * @param  {Object}   customData    Custom data that gets attached to the event detail property.
+	 * @private
+	 * @return {Boolean}                The return value is false if the event is cancelable and at least one of the event handlers which handled this event called Event.preventDefault(). Otherwise, it returns true.
+	 *
+	 * The "rona_" namespace is being used instead of ".rona" because ".rona" does not trigger the jQuery .on method.
+	 */
+	function trigger_event(type, cancelable, customData) {
+
+		// Defaults
+		var
+			cancelable = typeof cancelable === 'boolean' ? cancelable : false,
+			customData = typeof customData === 'object' ? customData : {};
+
+		// For non-IE browsers:
+		if (typeof CustomEvent === 'function') {
+			var e = new CustomEvent(type, {
+				cancelable: cancelable,
+				detail: customData
+			});
+		}
+
+		// While a window.CustomEvent object exists in IE 9-11, it cannot be called as a constructor. Instead of new CustomEvent(...), document.createEvent('CustomEvent') and e.initCustomEvent(...) must be used.
+		else {
+			var e = document.createEvent('CustomEvent');
+			e.initCustomEvent(type, false, cancelable, customData);
+		}
+
+		// Dispatch the event and return the result.
+		return document.dispatchEvent(e);
+	}
 };

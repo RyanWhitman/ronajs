@@ -4,7 +4,7 @@ RonaJS is a JavaScript router / micro framework that allows for the creation of 
 
 ## Current Version
 
-.7.2.0
+.7.3.0
 
 ## Installation
 
@@ -87,6 +87,8 @@ router.route('/my-page/{section}/{page_num([\d]+)}', [handler1, handler2]);
 ```
 Example of a matching request: `https://example.com/my-page/about/10` (`section` will equal `about`; `page_num` will equal `10`)
 
+---
+
 ### execute
 
 Attempt to match the current URI with a route and then execute the handlers, if enabled.
@@ -97,11 +99,15 @@ Attempt to match the current URI with a route and then execute the handlers, if 
 
 Returns **void**
 
+---
+
 ### get_routes
 
 Get all routes.
 
 Returns **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The routes.
+
+---
 
 ### location
 
@@ -114,11 +120,15 @@ Change the current route.
 
 Returns **void**
 
+---
+
 ### reload
 
 Reload the current route.
 
 Returns **void**
+
+---
 
 ### disable_handlers
 
@@ -126,11 +136,15 @@ Disable the execution of handlers.
 
 Returns **void**
 
+---
+
 ### enable_handlers
 
 Enable the execution of handlers.
 
 Returns **void**
+
+---
 
 ### query_params
 
@@ -142,17 +156,47 @@ Parse the query string and get the query parameters as an object.
 
 Returns **([Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) \| [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String))** The query parameters as an object. If a param_name is passed in, that specific value will be returned.
 
+---
+
 ### previous_requested_uri
 
 Get the previous requested URI.
 
 Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The previous requested URI.
 
+---
+
 ### route_vars
 
 Get the route variables for the matching URI.
 
 Returns **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The route variables for the matching URI.
+
+## Events
+
+RonaJS dispatches several events that can be hooked into.
+
+### rona_execute_handlers
+
+Gets triggered prior to the execution of handlers. The route vars and handlers are passed into the event detail property. The event is cancelable with e.preventDefault(). If canceled, the handlers will not be executed.
+
+**Example:**
+```javascript
+document.addEventListener('rona_execute_handlers', function(e) {
+
+	// The route vars and handlers are passed into the e.detail property.
+	console.log(e.detail);
+
+	// The execution of handlers can be canceled.
+	e.preventDefault();
+});
+```
+
+---
+
+### rona_handlers_executed
+
+Gets triggered after the execution of handlers. No data gets passed into the event and canceling the event is inconsequential.
 
 ## Other
 
