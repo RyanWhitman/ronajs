@@ -3,7 +3,7 @@
  *
  * @copyright Copyright (c) 2017 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT MIT
- * @version .7.3.0
+ * @version .7.4.0
  * @see https://github.com/RyanWhitman/ronajs
  */
 
@@ -99,7 +99,7 @@ var Rona = function() {
 	 *
 	 * @public
 	 * @param  {string}                   uri       The URI to attach a handler(s) to. The URI should include both starting and ending slashes, as necessary. The URI can be straight-forward and literal but can also contain variables and regular expressions. Variables are denoted with starting and closing curly braces. For example, `/my-page/{var1}`. By default, RonaJS interprets variables with a regular expression that matches anything but a forward slash. A custom regular expression can be passed in, as such: `/my-page/{var1([\\d]+)}`. In this example, RonaJS will now only accept digits for `var1`. Custom regular expressions that are tied to a route variable must be both parenthetically enclosed and escaped. Regular expressions do not necessarily need to be tied to a variable. They can be scattered throughout and RonaJS will match them against the requested URI. All URIs have a case-insensitive match.
-	 * @param  {string|Array|function}    handlers   A function(s) that will be executed for the provided URI. This argument may contain an anonymous function, a named function, a string containing the name of a function, or an array containing any combination of 3. Each handler will receive an object containing the route variables or an empty object when no variables exist.
+	 * @param  {string|Array|function}    handlers   A function(s) that will be executed for the provided URI. This argument may contain an anonymous function, a named function, a string containing the name of a function, or an array containing any combination of 3. Each handler will receive an object containing the route variables or an empty object when no variables exist. Handlers may return false to prevent additional handlers from executing (the event "rona_handlers_executed" still gets triggered).
 	 * @return {void}
 	 */
 	instance.route = function(uri, handlers) {
@@ -203,10 +203,15 @@ var Rona = function() {
 					var handler = handlers_to_execute[idx];
 
 					// Execute the handler.
+					var handler_response;
 					if (typeof handler === 'function')
-						handler(instance.route_vars());
+						handler_response = handler(instance.route_vars());
 					else
-						window[handler](instance.route_vars());
+						handler_response = window[handler](instance.route_vars());
+
+					// If the handler responded with false, do not execute additional handlers.
+					if (handler_response === false)
+						break;
 				}
 
 				// Trigger an event.

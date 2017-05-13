@@ -1,3 +1,9 @@
+### v. .7.4.0
+
+- Handlers may now return false to prevent additional handlers from executing. The event "rona_handlers_executed" still gets triggered.
+
+---
+
 ### v. .7.3.0
 
 - Added private trigger_event() method for triggering custom events. The method accounts for IE 9-11 compatibility.
