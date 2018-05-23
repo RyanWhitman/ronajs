@@ -1,11 +1,13 @@
 /**
- * RonaJS is a JavaScript router / micro framework that allows for the creation of any number of routes. Each route consists of a URI and 1 or more handlers. URIs can be straight-forward and literal or they can consist of variables and regular expressions. Upon execution, RonaJS finds the matching route and executes the handlers. RonaJS is built in vanilla JavaScript and does not require jQuery.
+ * RonaJS is a JavaScript framework that allows for the creation of any number of routes. Each route consists of a URI and 1 or more handlers. URIs can be straight-forward and literal or they can consist of variables and regular expressions. Upon execution, RonaJS finds the matching route and executes the handlers. RonaJS is built in vanilla JavaScript and does not require jQuery.
  *
  * @copyright Copyright (c) 2017 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT MIT
- * @version .7.4.0
+ * @version .7.5.0
  * @see https://github.com/RyanWhitman/ronajs
  */
+
+'use strict';
 
 /**
  * The RonaJS class.
@@ -27,8 +29,9 @@ var Rona = function() {
 	 * @private
 	 * @type {Object}
 	 */
-	var config = {
-		base_uri: ''
+	instance.config = {
+		base_uri: '',
+		requested_uri: location.pathname
 	};
 
 	/**
@@ -78,11 +81,22 @@ var Rona = function() {
 
 		// Add a listener to the click event.
 		document.addEventListener('click', function(e) {
+			var anchor = false;
+			if (e.target.tagName.toLowerCase() == 'a')
+				anchor = e.target;
+			else if (typeof e.path === 'object') {
+				for (var i = 0; i < e.path.length; i++) {
+					if (typeof e.path[i].tagName === 'string' && e.path[i].tagName.toLowerCase() == 'a') {
+						anchor = e.path[i];
+						break;
+					}
+				}
+			}
 
 			// When an anchor element that contains the "data-rona" attribute is clicked, use RonaJS to execute the route.
-			if (typeof e.target.dataset.rona === 'string' && typeof e.target.href === 'string') {
+			if (anchor && typeof anchor.href === 'string' && typeof anchor.dataset.rona === 'string') {
 				e.preventDefault();
-				instance.location(e.target.href);
+				instance.location(anchor.href);
 			}
 		});
 
@@ -103,20 +117,27 @@ var Rona = function() {
 	 * @return {void}
 	 */
 	instance.route = function(uri, handlers) {
-	
-		// Format the URI.
-		uri = uri.toString().toLowerCase();
-		if (uri == '/')
-			uri = '';
 
-		// Validate & format the handlers.
-		if (typeof handlers === 'undefined')
-			return false;
-		else if (Object.prototype.toString.call(handlers) !== '[object Array]')
-			handlers = [handlers];
+		// Convert the uri to an array.
+		if (typeof uri === 'string')
+			uri = [uri];
 
-		// Add this route to the routes property. Currently, RonaJS does not attempt to merge handlers. That will need to be implemented.
-		routes[uri] = handlers;
+		uri.forEach(function(u) {
+
+			// Format the URI.
+			u = u.toString().toLowerCase();
+			if (u == '/')
+				u = '';
+
+			// Validate & format the handlers.
+			if (typeof handlers === 'undefined')
+				return false;
+			else if (Object.prototype.toString.call(handlers) !== '[object Array]')
+				handlers = [handlers];
+
+			// Add this route to the routes property. Currently, RonaJS does not attempt to merge handlers. That will need to be implemented.
+			routes[u] = handlers;
+		});
 	};
 
 	/**
@@ -129,10 +150,13 @@ var Rona = function() {
 	instance.execute = function(disable_handlers) {
 
 		// Set default(s).
-		var disable_handlers = typeof disable_handlers == 'boolean' ? disable_handlers : null;
+		var disable_handlers = typeof disable_handlers === 'boolean' ? disable_handlers : null;
 
 		// Grab the requested URI and strip the base URI from it.
-		current_requested_uri = decodeURIComponent(location.pathname).replace(config.base_uri, '');
+		var config_requested_uri = instance.config.requested_uri;
+		if (typeof config_requested_uri === 'function')
+			config_requested_uri = config_requested_uri();
+		current_requested_uri = decodeURIComponent(config_requested_uri).replace(instance.config.base_uri, '');
 
 		// When the requested URI is just essentially the domain, strip the slash from it.
 		if (current_requested_uri == '/')
@@ -154,7 +178,7 @@ var Rona = function() {
 			// Create a regular expression to match the URI.
 			var regex = new RegExp('^' + uri.replace(/{([\da-z_]*[\da-z]+[\da-z_]*)(\([\S ]+?\))?}/gi, function(match, p1, p2) {
 				route_vars_matched.push(p1);
-				return typeof p2 == 'string' ? p2 : '([^/]+)';
+				return typeof p2 === 'string' ? p2 : '([^/]+)';
 			}) + '$', 'i');
 
 			// Validate the requested URI against the regular expression.
@@ -168,7 +192,7 @@ var Rona = function() {
 				var handlers_to_execute = handlers;
 
 				// Collect the route variables.
-				if (typeof current_requested_uri_matched.length == 'number') {
+				if (typeof current_requested_uri_matched.length === 'number') {
 					for (var i = 1; i < current_requested_uri_matched.length; i++)
 						route_vars[route_vars_matched[i - 1]] = current_requested_uri_matched[i];
 				}
@@ -241,7 +265,7 @@ var Rona = function() {
 	instance.location = function(uri, disable_handlers) {
 
 		// Set default(s).
-		disable_handlers = typeof disable_handlers == 'boolean' ? disable_handlers : null;
+		disable_handlers = typeof disable_handlers === 'boolean' ? disable_handlers : null;
 
 		// The previous URI is now the current requested URI.
 		previous_requested_uri = current_requested_uri;
@@ -311,7 +335,17 @@ var Rona = function() {
 		// Return the query params / query param.
 		return param_name == null ? query_params : query_params[param_name];
 	};
-	
+
+	/**
+	 * Get the current requested URI.
+	 *
+	 * @public
+	 * @return   {string}   The current requested URI.
+	 */
+	instance.current_requested_uri = function() {
+		return current_requested_uri;
+	};
+
 	/**
 	 * Get the previous requested URI.
 	 *
@@ -321,7 +355,7 @@ var Rona = function() {
 	instance.previous_requested_uri = function() {
 		return previous_requested_uri;
 	};
-	
+
 	/**
 	 * Get the route variables for the matching URI.
 	 *
@@ -334,7 +368,7 @@ var Rona = function() {
 
 	/**
 	 * Create and dispatch a custom event.
-	 * 
+	 *
 	 * @param  {string}   type          The name of the event.
 	 * @param  {Boolean}  cancelable    Whether or not Event.preventDefault() can prevent the event from moving forward.
 	 * @param  {Object}   customData    Custom data that gets attached to the event detail property.

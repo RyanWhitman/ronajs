@@ -1,10 +1,10 @@
 # RonaJS
 
-RonaJS is a JavaScript router / micro framework that allows for the creation of any number of routes. Each route consists of a URI and 1 or more handlers. URIs can be straight-forward and literal or they can consist of variables and regular expressions. Upon execution, RonaJS finds the matching route and executes the handlers. RonaJS is built in vanilla JavaScript and does not require jQuery.
+RonaJS is a JavaScript framework that allows for the creation of any number of routes. Each route consists of a URI and 1 or more handlers. URIs can be straight-forward and literal or they can consist of variables and regular expressions. Upon execution, RonaJS finds the matching route and executes the handlers. RonaJS is built in vanilla JavaScript and does not require jQuery.
 
 ## Current Version
 
-.7.4.0
+.7.5.0
 
 ## Installation
 
@@ -26,7 +26,7 @@ var router = new rona();
 
 // Add a route.
 router.route('/my-page', function() {
-	
+
 	// Welcome the user.
 	alert('Hi, welcome to your page!');
 });
@@ -155,6 +155,14 @@ Parse the query string and get the query parameters as an object.
 -   `param_name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** If passed in, the value for that specific query parameter will be returned. (optional, default `null`)
 
 Returns **([Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) \| [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String))** The query parameters as an object. If a param_name is passed in, that specific value will be returned.
+
+---
+
+### current_requested_uri
+
+Get the current requested URI.
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The current requested URI.
 
 ---
 

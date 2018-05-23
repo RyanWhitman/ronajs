@@ -1,3 +1,16 @@
+### v. .7.5.0
+
+- Added "use strict" declaration.
+- Made configuration variable editable.
+- Added "requested_uri" to the configuration. Its default is location.pathname, but that can now be changed. A function can be used.
+- A click can now be made on a "data-rona" anchor's inner elements and RonaJS will still process it.
+- An array of URIs can now be used when defining a route instead of just a single URI.
+- A new "current_requested_uri" method was added.
+- Added Editor Config
+- Updated license year
+
+---
+
 ### v. .7.4.0
 
 - Handlers may now return false to prevent additional handlers from executing. The event "rona_handlers_executed" still gets triggered.
