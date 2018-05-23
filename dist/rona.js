@@ -1,7 +1,7 @@
 /**
  * RonaJS is a JavaScript framework that allows for the creation of any number of routes. Each route consists of a URI and 1 or more handlers. URIs can be straight-forward and literal or they can consist of variables and regular expressions. Upon execution, RonaJS finds the matching route and executes the handlers. RonaJS is built in vanilla JavaScript and does not require jQuery.
  *
- * @copyright Copyright (c) 2017 Ryan Whitman (https://ryanwhitman.com)
+ * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT MIT
  * @version .7.5.0
  * @see https://github.com/RyanWhitman/ronajs
