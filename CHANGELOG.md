@@ -1,3 +1,7 @@
+### v. .7.5.1
+
+- From .7.5.0 - 'A click can now be made on a "data-rona" anchor's inner elements and RonaJS will still process it.' - Fixed to now work in Firefox and Edge, as well as Chrome.
+
 ### v. .7.5.0
 
 - Added "use strict" declaration.

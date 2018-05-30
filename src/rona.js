@@ -3,7 +3,7 @@
  *
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT MIT
- * @version .7.5.0
+ * @version .7.5.1
  * @see https://github.com/RyanWhitman/ronajs
  */
 
@@ -79,16 +79,33 @@ var Rona = function() {
 	 */
 	(function() {
 
-		// Add a listener to the click event.
+		// Attach an event listener to the document to capture all click events.
 		document.addEventListener('click', function(e) {
+
+			// Determine whether or not the click occurred on an anchor element. The click can occur directly on the anchor or on a child element of the anchor. For the latter, utilize the event path for Chrome, composedPath for FF, and the parentNode for Edge and IE.
 			var anchor = false;
 			if (e.target.tagName.toLowerCase() == 'a')
 				anchor = e.target;
-			else if (typeof e.path === 'object') {
-				for (var i = 0; i < e.path.length; i++) {
-					if (typeof e.path[i].tagName === 'string' && e.path[i].tagName.toLowerCase() == 'a') {
-						anchor = e.path[i];
-						break;
+			else {
+				var path = e.path || (e.composedPath && e.composedPath());
+				if (typeof path === 'object') {
+					for (var i = 0; i < path.length; i++) {
+						if (typeof path[i].tagName === 'string' && path[i].tagName.toLowerCase() == 'a') {
+							anchor = path[i];
+							break;
+						}
+					}
+				} else if (typeof e.target.parentNode === 'object') {
+					var node = e.target.parentNode;
+					while (1) {
+						if (typeof node.tagName === 'string' && node.tagName.toLowerCase() == 'a') {
+							anchor = node;
+							break;
+						}
+						if (typeof node.parentNode === 'object' && node.parentNode !== null)
+							node = node.parentNode;
+						else
+							break;
 					}
 				}
 			}

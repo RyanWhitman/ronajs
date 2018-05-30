@@ -4,7 +4,7 @@ RonaJS is a JavaScript framework that allows for the creation of any number of r
 
 ## Current Version
 
-.7.5.0
+.7.5.1
 
 ## Installation
 
