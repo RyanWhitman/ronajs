@@ -31,7 +31,7 @@ var Rona = function() {
 	 */
 	instance.config = {
 		base_path: '',
-		requested_uri: location.pathname
+		request_path: location.pathname
 	};
 
 	/**
@@ -43,12 +43,12 @@ var Rona = function() {
 	var routes = {};
 
 	/**
-	 * The current requested URI.
+	 * The current request path.
 	 *
 	 * @private
 	 * @type {string}
 	 */
-	var current_requested_uri = '';
+	var current_request_path = '';
 
 	/**
 	 * Determines whether or not the execution of handlers is disabled.
@@ -59,12 +59,12 @@ var Rona = function() {
 	var handlers_disabled = false;
 
 	/**
-	 * The previous requested URI.
+	 * The previous request path.
 	 *
 	 * @private
 	 * @type {string}
 	 */
-	var previous_requested_uri = '';
+	var previous_request_path = '';
 
 	/**
 	 * The path variables for the matching URI.
@@ -129,7 +129,7 @@ var Rona = function() {
 	 * Add a route.
 	 *
 	 * @public
-	 * @param  {string}                   uri       The URI to attach a handler(s) to. The URI should include both starting and ending slashes, as necessary. The URI can be straight-forward and literal but can also contain variables and regular expressions. Variables are denoted with starting and closing curly braces. For example, `/my-page/{var1}`. By default, RonaJS interprets variables with a regular expression that matches anything but a forward slash. A custom regular expression can be passed in, as such: `/my-page/{var1([\\d]+)}`. In this example, RonaJS will now only accept digits for `var1`. Custom regular expressions that are tied to a route variable must be both parenthetically enclosed and escaped. Regular expressions do not necessarily need to be tied to a variable. They can be scattered throughout and RonaJS will match them against the requested URI. All URIs have a case-insensitive match.
+	 * @param  {string}                   uri       The URI to attach a handler(s) to. The URI should include both starting and ending slashes, as necessary. The URI can be straight-forward and literal but can also contain variables and regular expressions. Variables are denoted with starting and closing curly braces. For example, `/my-page/{var1}`. By default, RonaJS interprets variables with a regular expression that matches anything but a forward slash. A custom regular expression can be passed in, as such: `/my-page/{var1([\\d]+)}`. In this example, RonaJS will now only accept digits for `var1`. Custom regular expressions that are tied to a route variable must be both parenthetically enclosed and escaped. Regular expressions do not necessarily need to be tied to a variable. They can be scattered throughout and RonaJS will match them against the request path. All URIs have a case-insensitive match.
 	 * @param  {string|Array|function}    handlers   A function(s) that will be executed for the provided URI. This argument may contain an anonymous function, a named function, a string containing the name of a function, or an array containing any combination of 3. Each handler will receive an object containing the path variables or an empty object when no variables exist. Handlers may return false to prevent additional handlers from executing (the event "rona_handlers_executed" still gets triggered).
 	 * @return {void}
 	 */
@@ -169,15 +169,15 @@ var Rona = function() {
 		// Set default(s).
 		var disable_handlers = typeof disable_handlers === 'boolean' ? disable_handlers : null;
 
-		// Grab the requested URI and strip the base path from it.
-		var config_requested_uri = instance.config.requested_uri;
-		if (typeof config_requested_uri === 'function')
-			config_requested_uri = config_requested_uri();
-		current_requested_uri = decodeURIComponent(config_requested_uri).replace(instance.config.base_path, '');
+		// Grab the request path and strip the base path from it.
+		var config_request_path = instance.config.request_path;
+		if (typeof config_request_path === 'function')
+			config_request_path = config_request_path();
+		current_request_path = decodeURIComponent(config_request_path).replace(instance.config.base_path, '');
 
-		// When the requested URI is just essentially the domain, strip the slash from it.
-		if (current_requested_uri == '/')
-			current_requested_uri = '';
+		// When the request path is just essentially the domain, strip the slash from it.
+		if (current_request_path == '/')
+			current_request_path = '';
 
 		// Loop thru each route.
 		for (var uri in routes) {
@@ -198,9 +198,9 @@ var Rona = function() {
 				return typeof p2 === 'string' ? p2 : '([^/]+)';
 			}) + '$', 'i');
 
-			// Validate the requested URI against the regular expression.
-			var current_requested_uri_matched = current_requested_uri.match(regex);
-			if (current_requested_uri_matched != null) {
+			// Validate the request path against the regular expression.
+			var current_request_path_matched = current_request_path.match(regex);
+			if (current_request_path_matched != null) {
 
 				// Reset route_var object
 				path_vars = {};
@@ -209,9 +209,9 @@ var Rona = function() {
 				var handlers_to_execute = handlers;
 
 				// Collect the path variables.
-				if (typeof current_requested_uri_matched.length === 'number') {
-					for (var i = 1; i < current_requested_uri_matched.length; i++)
-						path_vars[path_vars_matched[i - 1]] = current_requested_uri_matched[i];
+				if (typeof current_request_path_matched.length === 'number') {
+					for (var i = 1; i < current_request_path_matched.length; i++)
+						path_vars[path_vars_matched[i - 1]] = current_request_path_matched[i];
 				}
 			}
 		}
@@ -284,8 +284,8 @@ var Rona = function() {
 		// Set default(s).
 		disable_handlers = typeof disable_handlers === 'boolean' ? disable_handlers : null;
 
-		// The previous URI is now the current requested URI.
-		previous_requested_uri = current_requested_uri;
+		// The previous URI is now the current request path.
+		previous_request_path = current_request_path;
 
 		// Use push state to change the address in the browser's address bar.
 		window.history.pushState('', '', uri);
@@ -301,7 +301,7 @@ var Rona = function() {
 	 * @return {void}
 	 */
 	instance.reload = function() {
-		instance.location(current_requested_uri);
+		instance.location(current_request_path);
 	};
 
 	/**
@@ -354,23 +354,23 @@ var Rona = function() {
 	};
 
 	/**
-	 * Get the current requested URI.
+	 * Get the current request path.
 	 *
 	 * @public
-	 * @return   {string}   The current requested URI.
+	 * @return   {string}   The current request path.
 	 */
-	instance.current_requested_uri = function() {
-		return current_requested_uri;
+	instance.current_request_path = function() {
+		return current_request_path;
 	};
 
 	/**
-	 * Get the previous requested URI.
+	 * Get the previous request path.
 	 *
 	 * @public
-	 * @return   {string}   The previous requested URI.
+	 * @return   {string}   The previous request path.
 	 */
-	instance.previous_requested_uri = function() {
-		return previous_requested_uri;
+	instance.previous_request_path = function() {
+		return previous_request_path;
 	};
 
 	/**
