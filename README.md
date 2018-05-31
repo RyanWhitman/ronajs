@@ -47,7 +47,7 @@ Add a route.
 **Parameters**
 
 -   `uri` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The URI to attach a handler(s) to. The URI should include both starting and ending slashes, as necessary. The URI can be straight-forward and literal but can also contain variables and regular expressions. Variables are denoted with starting and closing curly braces. For example, `/my-page/{var1}`. By default, RonaJS interprets variables with a regular expression that matches anything but a forward slash. A custom regular expression can be passed in, as such: `/my-page/{var1([\\d]+)}`. In this example, RonaJS will now only accept digits for `var1`. Custom regular expressions that are tied to a route variable must be both parenthetically enclosed and escaped. Regular expressions do not necessarily need to be tied to a variable. They can be scattered throughout and RonaJS will match them against the requested URI. All URIs have a case-insensitive match.
--   `handlers` **([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) \| [function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function))** A function(s) that will be executed for the provided URI. This argument may contain an anonymous function, a named function, a string containing the name of a function, or an array containing any combination of 3. Each handler will receive an object containing the route variables or an empty object when no variables exist. Handlers may return false to prevent additional handlers from executing (the event "rona_handlers_executed" still gets triggered).
+-   `handlers` **([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) \| [function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function))** A function(s) that will be executed for the provided URI. This argument may contain an anonymous function, a named function, a string containing the name of a function, or an array containing any combination of 3. Each handler will receive an object containing the path variables or an empty object when no variables exist. Handlers may return false to prevent additional handlers from executing (the event "rona_handlers_executed" still gets triggered).
 
 Returns **void**
 
@@ -61,27 +61,27 @@ Example of a matching request: `https://example.com/my-page/123`
 **Example 2:** A path containing a variable match.
 
 ``` javascript
-router.route('{var1}', function(route_vars) {});
+router.route('{var1}', function(path_vars) {});
 ```
 Example of a matching request: `https://example.com/my-page` (`var1` will equal `my-page`)
 
 **Example 3:** A path containing both a literal match and variable matches.
 ``` javascript
-router.route('/my-page/{section}/{page_num}', function(route_vars) {});
+router.route('/my-page/{section}/{page_num}', function(path_vars) {});
 ```
 Example of a matching request: `https://example.com/my-page/about/page1` (`section` will equal `about`; `page_num` will equal `page1`)
 
 **Example 4:** A path containing a literal match, a variable match, and a variable match that utilizes a regular expression.
 ``` javascript
-router.route('/my-page/{section}/{page_num([\d]+)}', function(route_vars) {});
+router.route('/my-page/{section}/{page_num([\d]+)}', function(path_vars) {});
 ```
 Example of a matching request: `https://example.com/my-page/about/1` (`section` will equal `about`; `page_num` will equal `1`)
 
 **Example 5:** A path containing a literal match, a variable match, and a variable match that utilizes a regular expression. Additionally, an array of named functions is passed in for the handlers.
 ``` javascript
-function handler1(route_vars) {}
+function handler1(path_vars) {}
 
-function handler2(route_vars) {}
+function handler2(path_vars) {}
 
 router.route('/my-page/{section}/{page_num([\d]+)}', [handler1, handler2]);
 ```
@@ -174,11 +174,11 @@ Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refer
 
 ---
 
-### route_vars
+### path_vars
 
-Get the route variables for the matching URI.
+Get the path variables for the matching URI.
 
-Returns **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The route variables for the matching URI.
+Returns **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The path variables for the matching URI.
 
 ## Events
 

@@ -67,12 +67,12 @@ var Rona = function() {
 	var previous_requested_uri = '';
 
 	/**
-	 * The route variables for the matching URI.
+	 * The path variables for the matching URI.
 	 *
 	 * @private
 	 * @type {Object}
 	 */
-	var route_vars = {};
+	var path_vars = {};
 
 	/**
 	 * The constructor.
@@ -130,7 +130,7 @@ var Rona = function() {
 	 *
 	 * @public
 	 * @param  {string}                   uri       The URI to attach a handler(s) to. The URI should include both starting and ending slashes, as necessary. The URI can be straight-forward and literal but can also contain variables and regular expressions. Variables are denoted with starting and closing curly braces. For example, `/my-page/{var1}`. By default, RonaJS interprets variables with a regular expression that matches anything but a forward slash. A custom regular expression can be passed in, as such: `/my-page/{var1([\\d]+)}`. In this example, RonaJS will now only accept digits for `var1`. Custom regular expressions that are tied to a route variable must be both parenthetically enclosed and escaped. Regular expressions do not necessarily need to be tied to a variable. They can be scattered throughout and RonaJS will match them against the requested URI. All URIs have a case-insensitive match.
-	 * @param  {string|Array|function}    handlers   A function(s) that will be executed for the provided URI. This argument may contain an anonymous function, a named function, a string containing the name of a function, or an array containing any combination of 3. Each handler will receive an object containing the route variables or an empty object when no variables exist. Handlers may return false to prevent additional handlers from executing (the event "rona_handlers_executed" still gets triggered).
+	 * @param  {string|Array|function}    handlers   A function(s) that will be executed for the provided URI. This argument may contain an anonymous function, a named function, a string containing the name of a function, or an array containing any combination of 3. Each handler will receive an object containing the path variables or an empty object when no variables exist. Handlers may return false to prevent additional handlers from executing (the event "rona_handlers_executed" still gets triggered).
 	 * @return {void}
 	 */
 	instance.route = function(uri, handlers) {
@@ -189,12 +189,12 @@ var Rona = function() {
 			// Grab the handlers.
 			var handlers = routes[uri];
 
-			// Set a variable to hold the route variables.
-			var route_vars_matched = [];
+			// Set a variable to hold the path variables.
+			var path_vars_matched = [];
 
 			// Create a regular expression to match the URI.
 			var regex = new RegExp('^' + uri.replace(/{([\da-z_]*[\da-z]+[\da-z_]*)(\([\S ]+?\))?}/gi, function(match, p1, p2) {
-				route_vars_matched.push(p1);
+				path_vars_matched.push(p1);
 				return typeof p2 === 'string' ? p2 : '([^/]+)';
 			}) + '$', 'i');
 
@@ -203,15 +203,15 @@ var Rona = function() {
 			if (current_requested_uri_matched != null) {
 
 				// Reset route_var object
-				route_vars = {};
+				path_vars = {};
 
 				// Store the matching route's handlers in a variable.
 				var handlers_to_execute = handlers;
 
-				// Collect the route variables.
+				// Collect the path variables.
 				if (typeof current_requested_uri_matched.length === 'number') {
 					for (var i = 1; i < current_requested_uri_matched.length; i++)
-						route_vars[route_vars_matched[i - 1]] = current_requested_uri_matched[i];
+						path_vars[path_vars_matched[i - 1]] = current_requested_uri_matched[i];
 				}
 			}
 		}
@@ -223,13 +223,13 @@ var Rona = function() {
 		// If handlers were found, execute them.
 		if (typeof handlers_to_execute === 'object') {
 
-			// Ensure the route_vars format is correct.
-			if (typeof route_vars !== 'object')
-				route_vars = {};
+			// Ensure the path_vars format is correct.
+			if (typeof path_vars !== 'object')
+				path_vars = {};
 
 			// Trigger an event and proceed if true is returned.
 			if (trigger_event('rona_execute_handlers', true, {
-				route_vars: route_vars,
+				path_vars: path_vars,
 				handlers: handlers_to_execute
 			})) {
 
@@ -246,9 +246,9 @@ var Rona = function() {
 					// Execute the handler.
 					var handler_response;
 					if (typeof handler === 'function')
-						handler_response = handler(instance.route_vars());
+						handler_response = handler(instance.path_vars());
 					else
-						handler_response = window[handler](instance.route_vars());
+						handler_response = window[handler](instance.path_vars());
 
 					// If the handler responded with false, do not execute additional handlers.
 					if (handler_response === false)
@@ -374,13 +374,13 @@ var Rona = function() {
 	};
 
 	/**
-	 * Get the route variables for the matching URI.
+	 * Get the path variables for the matching URI.
 	 *
 	 * @public
-	 * @return   {Object}   The route variables for the matching URI.
+	 * @return   {Object}   The path variables for the matching URI.
 	 */
-	instance.route_vars = function() {
-		return route_vars;
+	instance.path_vars = function() {
+		return path_vars;
 	};
 
 	/**
