@@ -3,7 +3,7 @@
  *
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT MIT
- * @version .7.5.1
+ * @version .7.6.0
  * @see https://github.com/RyanWhitman/ronajs
  */
 
@@ -30,7 +30,7 @@ var Rona = function() {
 	 * @type {Object}
 	 */
 	instance.config = {
-		base_uri: '',
+		base_path: '',
 		requested_uri: location.pathname
 	};
 
@@ -169,11 +169,11 @@ var Rona = function() {
 		// Set default(s).
 		var disable_handlers = typeof disable_handlers === 'boolean' ? disable_handlers : null;
 
-		// Grab the requested URI and strip the base URI from it.
+		// Grab the requested URI and strip the base path from it.
 		var config_requested_uri = instance.config.requested_uri;
 		if (typeof config_requested_uri === 'function')
 			config_requested_uri = config_requested_uri();
-		current_requested_uri = decodeURIComponent(config_requested_uri).replace(instance.config.base_uri, '');
+		current_requested_uri = decodeURIComponent(config_requested_uri).replace(instance.config.base_path, '');
 
 		// When the requested URI is just essentially the domain, strip the slash from it.
 		if (current_requested_uri == '/')
