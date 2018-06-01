@@ -1,3 +1,13 @@
+### v. .7.6.0
+
+- To maintain continuity with RonaPHP, the following text was renamed, in this precise order:
+1. "route_vars" to "path_vars"
+2. "base_uri" to "base_path"
+3. "requested_uri" to "request_path"
+4. "current_request_path" to "request_path"
+5. "handler" to "controller"
+- The reload method no longer calls the location method. It simply calls the execute method directly. This allows the complete URL to remain exactly as it was while still reloading the route.
+
 ### v. .7.5.1
 
 - From .7.5.0 - 'A click can now be made on a "data-rona" anchor's inner elements and RonaJS will still process it.' - Fixed to now work in Firefox and Edge, as well as Chrome.
