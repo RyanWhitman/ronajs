@@ -43,12 +43,12 @@ var Rona = function() {
 	var routes = {};
 
 	/**
-	 * The current request path.
+	 * The request path.
 	 *
 	 * @private
 	 * @type {string}
 	 */
-	var current_request_path = '';
+	var request_path = '';
 
 	/**
 	 * Determines whether or not the execution of handlers is disabled.
@@ -158,7 +158,7 @@ var Rona = function() {
 	};
 
 	/**
-	 * Attempt to match the current URI with a route and then execute the handlers, if enabled.
+	 * Attempt to match the request path with a route and then execute the handlers, if enabled.
 	 *
 	 * @public
 	 * @param  {boolean|null}   [disable_handlers=null]   Whether or not to disable the handlers. If null, RonaJS defers to the handlers_disabled property.
@@ -173,11 +173,11 @@ var Rona = function() {
 		var config_request_path = instance.config.request_path;
 		if (typeof config_request_path === 'function')
 			config_request_path = config_request_path();
-		current_request_path = decodeURIComponent(config_request_path).replace(instance.config.base_path, '');
+		request_path = decodeURIComponent(config_request_path).replace(instance.config.base_path, '');
 
 		// When the request path is just essentially the domain, strip the slash from it.
-		if (current_request_path == '/')
-			current_request_path = '';
+		if (request_path == '/')
+			request_path = '';
 
 		// Loop thru each route.
 		for (var uri in routes) {
@@ -199,8 +199,8 @@ var Rona = function() {
 			}) + '$', 'i');
 
 			// Validate the request path against the regular expression.
-			var current_request_path_matched = current_request_path.match(regex);
-			if (current_request_path_matched != null) {
+			var request_path_matched = request_path.match(regex);
+			if (request_path_matched != null) {
 
 				// Reset route_var object
 				path_vars = {};
@@ -209,9 +209,9 @@ var Rona = function() {
 				var handlers_to_execute = handlers;
 
 				// Collect the path variables.
-				if (typeof current_request_path_matched.length === 'number') {
-					for (var i = 1; i < current_request_path_matched.length; i++)
-						path_vars[path_vars_matched[i - 1]] = current_request_path_matched[i];
+				if (typeof request_path_matched.length === 'number') {
+					for (var i = 1; i < request_path_matched.length; i++)
+						path_vars[path_vars_matched[i - 1]] = request_path_matched[i];
 				}
 			}
 		}
@@ -284,8 +284,8 @@ var Rona = function() {
 		// Set default(s).
 		disable_handlers = typeof disable_handlers === 'boolean' ? disable_handlers : null;
 
-		// The previous URI is now the current request path.
-		previous_request_path = current_request_path;
+		// The previous URI is now the request path.
+		previous_request_path = request_path;
 
 		// Use push state to change the address in the browser's address bar.
 		window.history.pushState('', '', uri);
@@ -301,7 +301,7 @@ var Rona = function() {
 	 * @return {void}
 	 */
 	instance.reload = function() {
-		instance.location(current_request_path);
+		instance.location(request_path);
 	};
 
 	/**
@@ -354,13 +354,13 @@ var Rona = function() {
 	};
 
 	/**
-	 * Get the current request path.
+	 * Get the request path.
 	 *
 	 * @public
-	 * @return   {string}   The current request path.
+	 * @return   {string}   The request path.
 	 */
-	instance.current_request_path = function() {
-		return current_request_path;
+	instance.request_path = function() {
+		return request_path;
 	};
 
 	/**
