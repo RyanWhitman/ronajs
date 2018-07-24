@@ -1,3 +1,7 @@
+### v. .7.7.0
+
+- The page now scrolls to the top when running the reload() method.
+
 ### v. .7.6.0
 
 - To maintain continuity with RonaPHP, the following text was renamed, in this precise order:

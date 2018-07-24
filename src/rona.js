@@ -3,7 +3,7 @@
  *
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT MIT
- * @version .7.6.0
+ * @version .7.7.0
  * @see https://github.com/RyanWhitman/ronajs
  */
 
@@ -295,13 +295,14 @@ var Rona = function() {
 	};
 
 	/**
-	 * Reload the current route.
+	 * Reload the current route and scroll to the top of the page.
 	 *
 	 * @public
 	 * @return {void}
 	 */
 	instance.reload = function() {
 		instance.execute();
+		window.scrollTo(0, 0);
 	};
 
 	/**
