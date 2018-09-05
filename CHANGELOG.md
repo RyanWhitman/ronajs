@@ -1,3 +1,7 @@
+### v. .7.8.0
+
+- Added scope object that gets passed to each controller.
+
 ### v. .7.7.0
 
 - The page now scrolls to the top when running the reload() method.

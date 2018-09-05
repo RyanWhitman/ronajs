@@ -3,7 +3,7 @@
  *
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT MIT
- * @version .7.7.0
+ * @version .7.8.0
  * @see https://github.com/RyanWhitman/ronajs
  */
 
@@ -73,6 +73,13 @@ var Rona = function() {
 	 * @type {boolean}
 	 */
 	var controllers_disabled = false;
+
+	/**
+	 * The scope object, which gets passed to each controller.
+	 *
+	 * @type {Object}
+	 */
+	var scope = {};
 
 	/**
 	 * The constructor.
@@ -246,9 +253,9 @@ var Rona = function() {
 					// Execute the controller.
 					var controller_response;
 					if (typeof controller === 'function')
-						controller_response = controller(instance.path_vars());
+						controller_response = controller(instance.path_vars(), scope);
 					else
-						controller_response = window[controller](instance.path_vars());
+						controller_response = window[controller](instance.path_vars(), scope);
 
 					// If the controller responded with false, do not execute additional controllers.
 					if (controller_response === false)
