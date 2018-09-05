@@ -4,7 +4,7 @@ RonaJS is a JavaScript framework built in vanilla JavaScript.
 
 ## Current Version
 
-.7.7.0
+.7.8.0
 
 ## Installation
 
